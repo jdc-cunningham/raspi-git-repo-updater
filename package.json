@@ -1,0 +1,24 @@
+{
+  "name": "raspi-git-repo-updater",
+  "version": "1.0.0",
+  "description": "An automated way to update my profile read me",
+  "main": "main.js",
+  "dependencies": {
+    "axios": "^0.19.2",
+    "dotenv": "^8.2.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jdc-cunningham/raspi-git-repo-updater.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jdc-cunningham/raspi-git-repo-updater/issues"
+  },
+  "homepage": "https://github.com/jdc-cunningham/raspi-git-repo-updater#readme"
+}

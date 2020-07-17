@@ -45,29 +45,71 @@ const updateReadMe = (readMePath, targetTextLine, newText, endOfFile) => {
     }
 }
 
-const getPanelData = async () => {
-    axios.get(process.env.PANEL_API_PATH)
-        .then(function (response) {
-            // format data
-            const panelLines = '';
-            console.log(response);
-            return(panelLines);
+const getPanelData = () => {
+    return axios.get(process.env.PANEL_API_PATH)
+        .then(function (res) {
+            if (Object.keys(res.data).length > 0) {
+                const panelData = res.data.measurements; // data in DESC order
+                if (panelData['1'].panel_id === "le_panel") {
+                    return panelData['1'];
+                } else {
+                    return panelData['2'];
+                }
+            } else {
+                return false;
+            }
         })
-        .catch(function (error) {
-            return('Failed to get Panel data');
+        .catch(function (err) {
+            return false;
         });
 }
 
-// the purpose of this specific eg. hits my own API endpoints for data
-const getNewLines = async () => {
-    console.log('first');
-    console.log(await getPanelData());
-    console.log('second');
+const roundFcn = (inpNum) => {
+    return (Math.round((inpNum * 1000)/10)/100).toFixed(2);
 }
 
-getNewLines();
+const getPanelPower = (voltageStr) => {
+    // perform Watt calculation
+    // V = IR -> I = V/R
+    // W = AV ->  W = I*V
+    const voltage = parseFloat(voltageStr.split(' V')[0]);
+    const current = roundFcn((voltage / 25));
 
-// updateReadMe(process.env.README_PATH, targetTextLine, 'Huh', true);
+    return {
+        current, // was 110
+        powerProduced: roundFcn((current * voltage)) + ' W'
+    };
+}
+
+const generatePanelLines = (panelData) => {
+
+}
+
+// turbine hah it's an anemometer
+const generateTurbineLines = (turbineData) => {
+
+}
+
+// the purpose of this specific eg. hits my own API endpoints for data
+const getData = async () => {
+    let newSensorLines = '### Sensor data\n';
+    const panelData = await getPanelData();
+
+    if (panelData) {
+        const panelPower = getPanelPower(panelData.computed);
+        const panelSensorLines = [
+            '**5V 100mA Solar Cell**',
+            `- ${panelData.date}`,
+            `- Computed voltage: ${panelData.computed} current: ${panelPower.current}`,
+            `- Power produced: ${panelPower.powerProduced}`
+        ];
+        newSensorLines += panelSensorLines.join('\n');
+    }
+    
+    updateReadMe(process.env.README_PATH, targetTextLine, newSensorLines, true);
+}
+
+getData();
 
 // "references"
 // https://nodejs.org/en/knowledge/file-system/how-to-read-files-in-nodejs/
