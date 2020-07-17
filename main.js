@@ -1,11 +1,13 @@
 require('dotenv').config();
 const fs = require('fs');
 const axios = require('axios');
+const dateTime = require('node-datetime');
+const dt = dateTime.create();
 
 // this line is what part of a file you want to intercept/add output to
 // mine is easy since it's going to be the end of the file
 // I'll add an option to toggle endOfFile otherwise new text is injected
-const targetTextLine = '### Active sensors';
+const targetTextLine = '### Sensor data';
 
 /**
  * This is where you specify the path to the README to be updated
@@ -76,24 +78,35 @@ const getPanelPower = (voltageStr) => {
     const current = roundFcn((voltage / 25));
 
     return {
-        current, // was 110
+        current, // was 110 Ohms
         powerProduced: roundFcn((current * voltage)) + ' W'
     };
 }
 
-const generatePanelLines = (panelData) => {
-
-}
-
 // turbine hah it's an anemometer
-const generateTurbineLines = (turbineData) => {
-
+const getTurbineData = () => {
+    return axios.get(process.env.TURBINE_API_PATH)
+        .then(function (res) {
+            if (res.data.length) {
+                const turbineData = res.data.split('<br>'); // data is 2 lines of text
+                return {
+                    mw: turbineData[0],
+                    highest: turbineData[1]
+                };
+            } else {
+                return false;
+            }
+        })
+        .catch(function (err) {
+            return false;
+        });
 }
 
 // the purpose of this specific eg. hits my own API endpoints for data
-const getData = async () => {
+const updateReadMe = async () => {
     let newSensorLines = '### Sensor data\n';
     const panelData = await getPanelData();
+    const turbineData = await getTurbineData();
 
     if (panelData) {
         const panelPower = getPanelPower(panelData.computed);
@@ -101,15 +114,28 @@ const getData = async () => {
             '**5V 100mA Solar Cell**',
             `- ${panelData.date}`,
             `- Computed voltage: ${panelData.computed} current: ${panelPower.current}`,
-            `- Power produced: ${panelPower.powerProduced}`
+            `- Power produced: ${panelPower.powerProduced}`,
+            '[Project link](https://github.com/jdc-cunningham/raspisolarplotter)'
         ];
         newSensorLines += panelSensorLines.join('\n');
+    }
+
+    if (turbineData) {
+        newSensorLines += '\n\n';
+        const turbineSensorLines = [
+            '**Small random DC motor attached to stick** - data gathered every minute',
+            `- Fetched today ${dt.format('W m-d-Y I:M p')}`,
+            `- Produced: ${turbineData.mw.split(' ')[0]} mW`,
+            `- ${turbineData.highest}`,
+            `[Project link](https://github.com/jdc-cunningham/turbine-raspi)`
+        ];
+        newSensorLines += turbineSensorLines.join('\n');
     }
     
     updateReadMe(process.env.README_PATH, targetTextLine, newSensorLines, true);
 }
 
-getData();
+updateReadMe();
 
 // "references"
 // https://nodejs.org/en/knowledge/file-system/how-to-read-files-in-nodejs/
