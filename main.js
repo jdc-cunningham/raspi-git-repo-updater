@@ -3,6 +3,7 @@ const fs = require('fs');
 const axios = require('axios');
 const dateTime = require('node-datetime');
 const dt = dateTime.create();
+const exec = require('child_process').exec;
 
 // this line is what part of a file you want to intercept/add output to
 // mine is easy since it's going to be the end of the file
@@ -43,8 +44,10 @@ const updateReadMe = (readMePath, targetTextLine, newText, endOfFile) => {
     const fileNowUpdated = fs.statSync(readMePath);
 
     if (fileLastUpdated.mtime < fileNowUpdated.mtime) {
-        console.log('updated');
+        return true;
     }
+
+    return false;
 }
 
 const getPanelData = () => {
@@ -103,7 +106,7 @@ const getTurbineData = () => {
 }
 
 // the purpose of this specific eg. hits my own API endpoints for data
-const updateReadMe = async () => {
+const runUpdate = async () => {
     let newSensorLines = '### Sensor data\n';
     const panelData = await getPanelData();
     const turbineData = await getTurbineData();
@@ -132,10 +135,30 @@ const updateReadMe = async () => {
         newSensorLines += turbineSensorLines.join('\n');
     }
     
-    updateReadMe(process.env.README_PATH, targetTextLine, newSensorLines, true);
+    const fileUpdated = updateReadMe(process.env.README_PATH, targetTextLine, newSensorLines, true);
+
+    if (fileUpdated) {
+        // run git commands with child_process/exec
+        const cmd = `cd ${process.env.README_REPO_PATH}
+            git add .
+            git commit -m "updated on ${dt.format('W m-d-Y I:M p')}"
+            git push origin master`;
+        
+        exec(cmd, function (error, stdout, stderr) {
+            // regarding these errors
+            // no one will know this happened
+            // unless you attach some notification function eg. email/sms/etc
+            if (error) {
+                console.log("failed to update repo", error.message);
+            }
+            if (stderr) {
+                console.log("stderr", stderr);
+            }
+        });
+    }
 }
 
-updateReadMe();
+runUpdate();
 
 // "references"
 // https://nodejs.org/en/knowledge/file-system/how-to-read-files-in-nodejs/
