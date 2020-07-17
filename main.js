@@ -29,14 +29,12 @@ const updateReadMe = (readMePath, targetTextLine, newText, endOfFile) => {
 
     fs.readFileSync(readMePath, 'utf-8').split(/\r?\n/).forEach(function(line) {
         if (targetTextLine === line) {
-            console.log(newText);
             newFileLines.push(newText);
             stopOutput = endOfFile;
         }
 
         if (!stopOutput) {
             newFileLines.push(line);
-            console.log(line);
         }
     });
 
