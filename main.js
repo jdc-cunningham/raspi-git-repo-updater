@@ -1,4 +1,5 @@
-require('dotenv').config();
+const dotenv = require('dotenv');
+dotenv.config({ path: __dirname + '/.env' });
 const fs = require('fs');
 const axios = require('axios');
 const dateTime = require('node-datetime');
