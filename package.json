@@ -4,7 +4,7 @@
   "description": "An automated way to update my profile read me",
   "main": "main.js",
   "dependencies": {
-    "axios": "^0.19.2",
+    "axios": "^0.21.1",
     "dotenv": "^8.2.0",
     "node-datetime": "^2.1.2"
   },
