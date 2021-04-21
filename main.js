@@ -9,7 +9,7 @@ const exec = require('child_process').exec;
 // this line is what part of a file you want to intercept/add output to
 // mine is easy since it's going to be the end of the file
 // I'll add an option to toggle endOfFile otherwise new text is injected
-const targetTextLine = '### Sensor data';
+const targetTextLine = '#### Sensor data';
 
 /**
  * This is where you specify the path to the README to be updated
