@@ -1,4 +1,4 @@
-const dotenv = require('dotenv');
+const dotenv = require('dotenv');    
 dotenv.config({ path: __dirname + '/.env' });
 const fs = require('fs');
 const axios = require('axios');
@@ -77,11 +77,11 @@ const getPanelPower = (voltageStr) => {
     // V = IR -> I = V/R
     // W = AV ->  W = I*V
     const voltage = parseFloat(voltageStr.split(' V')[0]);
-    const current = roundFcn((voltage / 25));
+    const current = roundFcn((voltage / 25)) * 1000;
 
     return {
         current, // was 110 Ohms
-        powerProduced: roundFcn((current * voltage)) + ' W'
+        powerProduced: roundFcn(((0.001 * current) * voltage)) + ' W'
     };
 }
 
@@ -89,7 +89,7 @@ const getPanelPower = (voltageStr) => {
 const getTurbineData = () => {
     return axios.get(process.env.TURBINE_API_PATH)
         .then(function (res) {
-            if (res.data.length) {
+            if (res.data.length && res.data.indexOf('empty') === -1) {
                 const turbineData = res.data.split('<br>'); // data is 2 lines of text
                 return {
                     mw: turbineData[0],
@@ -115,9 +115,9 @@ const runUpdate = async () => {
         const panelSensorLines = [
             '**5V 100mA Solar Cell**',
             `- ${panelData.date}`,
-            `- Computed voltage: ${panelData.computed} current: ${panelPower.current}`,
+            `- Computed voltage: ${panelData.computed} current: ${panelPower.current} mA`,
             `- Power produced: ${panelPower.powerProduced}`,
-            '[Project link](https://github.com/jdc-cunningham/raspisolarplotter)'
+            '- [Project link](https://github.com/jdc-cunningham/raspisolarplotter)'
         ];
         newSensorLines += panelSensorLines.join('\n');
     }
@@ -129,7 +129,7 @@ const runUpdate = async () => {
             `- Fetched today ${dt.format('W m-d-Y I:M p')}`,
             `- Produced: ${turbineData.mw.split(' ')[0]} mW`,
             `- ${turbineData.highest}`,
-            `[Project link](https://github.com/jdc-cunningham/turbine-raspi)`
+            `- [Project link](https://github.com/jdc-cunningham/turbine-raspi)`
         ];
         newSensorLines += turbineSensorLines.join('\n');
     }
