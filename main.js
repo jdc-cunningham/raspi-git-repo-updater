@@ -106,7 +106,7 @@ const getTurbineData = () => {
 
 // the purpose of this specific eg. hits my own API endpoints for data
 const runUpdate = async () => {
-    let newSensorLines = '### Sensor data\n';
+    let newSensorLines = '#### Sensor data\n';
     const panelData = await getPanelData();
     const turbineData = await getTurbineData();
 
